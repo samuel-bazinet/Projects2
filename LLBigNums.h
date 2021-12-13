@@ -12,17 +12,22 @@ class BigNum {
         BigNum* prev;
         BigNum* next;
         int value;
+        
 
     public:
         BigNum();
         BigNum(int number);
+        BigNum(const BigNum* number);
+        virtual ~BigNum();
         void setPrev(BigNum* bn);
         void setNext(BigNum* bn);
-        void append(int number);
-        ~BigNum();
-        //BigNum operator *(const int number);
+        BigNum* getPrev() {return prev;}
+        BigNum* getNext() {return next;}
+        int getValue() {return value;}
+        //void append(const int number);
+        BigNum operator +(const int number);
+        BigNum operator *(const int number);
         //BigNum operator *(const BigNum number);
-        //BigNum operator +(const int number);
         //BigNum operator +(const BigNum number);
         std::string toString();
 
