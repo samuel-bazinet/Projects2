@@ -15,7 +15,7 @@ This program looks for primes numbers and stores them in a linked list
 - Making the algorithm more efficient
 - Adding a UI
 
-## LLBigNumbs
+## LLBigNums
 Want to deal with numbers larger than what *unsinged long long int* can deliver?
 This program uses a linked list to store much much bigger numbers (tested up to 100 000!) 
 

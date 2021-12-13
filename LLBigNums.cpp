@@ -1,99 +1,50 @@
-#include<iostream>
-#include<string>
+#include"LLBigNums.h"
 
 using namespace std;
 
-struct NumSlice {
-    NumSlice *next;
-    NumSlice *prev;
-    int num;
-};
-
-class BigNum {
-    private:
-        NumSlice *base;
-
-    public:
-        BigNum();
-        BigNum(int num);
-        BigNum(NumSlice *ns);
-        ~BigNum();
-        void fix();
-        BigNum operator *(const int mul);
-        //BigNum operator *(const BigNum mul);
-        string toString();
-
-};
-
 BigNum::BigNum() {
-    base = new NumSlice;
-    base->next = nullptr;
-    base->prev = nullptr;
-    base->num = 0;
+    next = nullptr;
+    prev = nullptr;
+    value = 0;
 }
 
-BigNum::BigNum(int num) {
-    base = new NumSlice;
-    base->prev = nullptr;
-    base->next = nullptr;
-    base->num = num;
-    fix();
-}
-
-BigNum::BigNum(NumSlice *ns) {
-    base = ns;
+BigNum::BigNum(int number) {
+    if (number >= 1000) {
+        int temp = number/1000;
+        value = number - temp*1000;
+    } else {
+        value = number;
+    }
+    prev = nullptr;
+    if (number >= 1000) {
+        this->append(number/1000);
+    } else {
+        next = nullptr;
+    }
 }
 
 BigNum::~BigNum() {
     
 }
 
-void BigNum::fix() {
-    NumSlice* current = base;
-
-    while (nullptr != current) {
-
-        if (current->num >= 1000) {
-
-            int numToPush = current->num / 1000;
-            current->num -= (numToPush*1000);
-
-            if (nullptr == current->next) {
-                NumSlice *newSlice = new NumSlice;
-                newSlice->num = numToPush;
-                newSlice->prev = current;
-                newSlice->next = nullptr;
-                current->next = newSlice;
-            } else {
-                current->next->num += numToPush;
-            }
-
-        }
-
-        current = current->next;
-
-    }
-
+void BigNum::setPrev(BigNum* bn) {
+    this->prev = bn;
 }
 
-BigNum BigNum::operator *(const int mul) {
+void BigNum::setNext(BigNum* bn) {
+    this->next = bn;
+}
 
-    NumSlice *current = base;
-
-    while (nullptr != current) {
-        current->num *= mul;
-        current = current->next;
-    }
-
-    fix();
-
-    return BigNum(base);
+void BigNum::append(int number) {
+    BigNum* newNum = new BigNum(number);
+    newNum->setPrev(this);
+    this->next = newNum;
 
 }
 
 string BigNum::toString() {
 
-    NumSlice *current = base;
+    BigNum* current = this;
     string out = "";
 
     while (nullptr != current->next) {
@@ -101,12 +52,12 @@ string BigNum::toString() {
     }
 
     while (nullptr != current) {
-        if (current->num < 10)
-            out += "00" + to_string(current->num) + " ";
-        else if (current-> num < 100)
-            out += "0" + to_string(current->num) + " ";
+        if (current->value < 10)
+            out += "00" + to_string(current->value) + " ";
+        else if (current->value < 100)
+            out += "0" + to_string(current->value) + " ";
         else 
-            out += to_string(current->num) + ' ';
+            out += to_string(current->value) + ' ';
         current = current->prev;
     }
 
@@ -114,28 +65,11 @@ string BigNum::toString() {
 
 }
 
-BigNum factorial(int n) {
-    BigNum out(1);
-    for (int i = 1; i <= n; i++) {
-        out = out*i;
-    }
-    return out;
-}
-
-int main(int argc, char* argv[]) {
-    int fac = 100;
-    if (argc == 2) {
-        fac = atoi(argv[1]);
-    }
+int main() {
 
     BigNum test(123456789);
-    cout << test.toString() << endl;
 
-    test = test*10;
     cout << test.toString() << endl;
-
-    cout << fac << "! = " << factorial(fac).toString() << endl;
 
     return 0;
-    
 }
