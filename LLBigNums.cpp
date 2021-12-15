@@ -41,24 +41,6 @@ void multiply(NumSlice* slice, int number) {
         multiply(slice->next, number);
     }
 
-    if (slice->value >= 1000) {
-
-        int toAdd = slice->value/1000;
-        slice->value -= toAdd*1000;
-
-        if (nullptr == slice->next) {
-
-            NumSlice *newSlice = new NumSlice;
-            newSlice->prev = slice;
-            newSlice->value = 0;
-            newSlice->next = nullptr;
-            slice->next = newSlice;
-
-        }
-
-        add(slice->next, toAdd);
-        
-    }
     
 }
 
@@ -190,6 +172,41 @@ BigNum BigNum::operator *(const int number) {
     NumSlice *current = returnNum.base;
 
     multiply(current, number);
+    
+    if (current->value >= 1000) {
+        int toAdd = current->value/1000;
+        current->value -= toAdd*1000;
+        if (nullptr == current->next) {
+            NumSlice *newSlice = new NumSlice;
+            newSlice->value = 0;
+            newSlice->next = nullptr;
+            newSlice->prev = current;
+            current->next = newSlice;
+        } 
+
+        current->next->value += toAdd;
+        
+    }
+
+
+    while (nullptr != current->next) {
+        current = current->next;
+        if (current->value >= 1000) {
+            int toAdd = current->value/1000;
+            current->value -= toAdd*1000;
+            if (nullptr == current->next) {
+                NumSlice *newSlice = new NumSlice;
+                newSlice->value = 0;
+                newSlice->next = nullptr;
+                newSlice->prev = current;
+                current->next = newSlice;
+            } 
+
+            current->next->value += toAdd;
+            
+        }        
+
+    }
 
     return returnNum;
 
@@ -248,8 +265,10 @@ string BigNum::toString() {
 }
 
 BigNum factorial(int n) {
+    cout << "Starting factorial sequence" << endl;
     BigNum out(1);
     for (int i = 1; i <= n; i++) {
+        cout << "Multiplying by " << i << endl;
         out = out*i;
     }
     return out;
