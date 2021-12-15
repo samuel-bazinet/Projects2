@@ -11,18 +11,55 @@ struct NumSlice {
 
 void add(NumSlice* slice, int number) {
     slice->value += number;
+
     if (slice->value >= 1000) {
+
         int toAdd = slice->value/1000;
         slice->value -= toAdd*1000;
+
         if (nullptr == slice->next) {
+
             NumSlice *newSlice = new NumSlice;
             newSlice->prev = slice;
             newSlice->value = 0;
             newSlice->next = nullptr;
             slice->next = newSlice;
+
         }
+
         add(slice->next, toAdd);
+        
     }
+
+}
+
+void multiply(NumSlice* slice, int number) {
+
+    slice->value *= number;
+
+    if (nullptr != slice->next) {
+        multiply(slice->next, number);
+    }
+
+    if (slice->value >= 1000) {
+
+        int toAdd = slice->value/1000;
+        slice->value -= toAdd*1000;
+
+        if (nullptr == slice->next) {
+
+            NumSlice *newSlice = new NumSlice;
+            newSlice->prev = slice;
+            newSlice->value = 0;
+            newSlice->next = nullptr;
+            slice->next = newSlice;
+
+        }
+
+        add(slice->next, toAdd);
+        
+    }
+    
 }
 
 class BigNum {
@@ -32,13 +69,14 @@ class BigNum {
     public:
         BigNum();
         BigNum(int num);
-        BigNum(const NumSlice *ns);
+        BigNum(NumSlice *ns);
         BigNum(const BigNum* bn);
         ~BigNum();
         void fix();
         BigNum operator +(const int add);
         BigNum operator *(const int mul);
         //BigNum operator *(const BigNum mul);
+        void operator =(const BigNum &toAss);
         string toString();
 
 };
@@ -67,11 +105,11 @@ BigNum::BigNum(int num) {
     }
 }
 
-BigNum::BigNum(const NumSlice *ns) {
+BigNum::BigNum(NumSlice *ns) {
     base = new NumSlice;
     base->prev = nullptr;
     base->next = nullptr;
-    base = ns->value;
+    base->value = ns->value;
     NumSlice *temp1 = base;
     NumSlice *temp2 = ns;
     while (nullptr != temp2->prev) {
@@ -100,7 +138,7 @@ BigNum::BigNum(const BigNum* bn) {
     base = new NumSlice;
     base->prev = nullptr;
     base->next = nullptr;
-    base = temp2->value;
+    base->value = temp2->value;
     NumSlice *temp1 = base;
     while (nullptr != temp2->prev) {
         temp1->prev = new NumSlice;
@@ -111,7 +149,7 @@ BigNum::BigNum(const BigNum* bn) {
     }
     temp1->prev = nullptr;
     temp1 = base;
-    temp2 = ns;
+    temp2 = bn->base;
     while(nullptr != temp2->next) {
         temp1->next = new NumSlice;
         temp1->next->prev = temp1;
@@ -127,73 +165,63 @@ BigNum::~BigNum() {
     while (nullptr != current->next) {
         current = current->next;
     }
-    current = current->prev;
     while (nullptr != current->prev) {
-        delete current->next;
         current = current->prev;
+        delete current->next;
     }
     delete current;
 }
 
-BigNum BigNum::operator+(const int add) {
+BigNum BigNum::operator+(const int number) {
     
-    NumSlice *current = base;
-
-    int toAdd;
-    current->value += add;
-
-    if (current->value >= 1000) {
-
-        toAdd = current->value/1000;
-        current->value -= toAdd*1000;
-
-    } else {
-
-        return BigNum(base);
-
-    }
+    BigNum returnNum(this);
+    NumSlice *current = returnNum.base;
     
+    add(current, number);
 
-    while (toAdd != 0) {
-
-        if (nullptr == current->next) {
-
-            current->next = new NumSlice;
-            current->next->prev = current;
-        }
-
-        current = current->next;
-        current->value += toAdd;
-
-        if (current->value >= 1000) {
-
-            toAdd = current->value/1000;
-            current->value -= toAdd*1000;
-
-        } else {
-
-            return BigNum(base);
-
-        }
-
-    }
-
-    return BigNum(base);
+    return returnNum;
+    
 }
 
 // TODO make sure u only go through it once
-BigNum BigNum::operator *(const int mul) {
+BigNum BigNum::operator *(const int number) {
 
-    NumSlice *current = base;
+    BigNum returnNum(this);
+    NumSlice *current = returnNum.base;
 
-    while (nullptr != current) {
-        current->value *= mul;
-        current = current->next;
+    multiply(current, number);
+
+    return returnNum;
+
+}
+
+void BigNum::operator =(const BigNum &toAss) {
+    base = new NumSlice;
+    base->prev = nullptr;
+    base->value = toAss.base->value;
+    base->next = nullptr;
+    NumSlice *temp1 = base;
+    NumSlice *temp2 = toAss.base;
+    while (nullptr != temp2->next) {
+        NumSlice *temp3 = new NumSlice;
+        temp2 = temp2->next;
+        temp3->prev = temp1;
+        temp3->value = temp2->value;
+        temp3->next = nullptr;
+        temp1->next = temp3;
+        temp1 = temp1->next;
     }
-
-
-    return BigNum(base);
-
+    temp1 = base;
+    temp2 = toAss.base;
+    while (nullptr != temp2->prev) {
+        NumSlice *temp3 = new NumSlice;
+        temp2 = temp2->prev;
+        temp3->next = temp1;
+        temp3->value = temp2->value;
+        temp3->prev = nullptr;
+        temp1->prev = temp3;
+        temp1 = temp1->prev;
+    }
 }
 
 string BigNum::toString() {
@@ -208,7 +236,7 @@ string BigNum::toString() {
     while (nullptr != current) {
         if (current->value < 10)
             out += "00" + to_string(current->value) + " ";
-        else if (current-> num < 100)
+        else if (current->value < 100)
             out += "0" + to_string(current->value) + " ";
         else 
             out += to_string(current->value) + ' ';
@@ -234,6 +262,9 @@ int main(int argc, char* argv[]) {
     }
 
     BigNum test(123456789);
+    cout << test.toString() << endl;
+
+    test = test+2345678;
     cout << test.toString() << endl;
 
     test = test*10;
