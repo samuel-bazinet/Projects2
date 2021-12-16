@@ -71,9 +71,11 @@ class BigNum {
         BigNum(int num);
         BigNum(NumSlice *ns);
         BigNum(const BigNum* bn);
+        BigNum(const BigNum& bn);
         ~BigNum();
         void fix();
         BigNum operator +(const int add);
+        BigNum operator + (const BigNum& bn);
         BigNum operator *(const int mul);
         //BigNum operator *(const BigNum mul);
         void operator =(const BigNum &toAss);
@@ -160,6 +162,33 @@ BigNum::BigNum(const BigNum* bn) {
     temp1->next = nullptr;
 }
 
+BigNum::BigNum(const BigNum& bn) {
+    NumSlice *temp2 = bn.base;
+    base = new NumSlice;
+    base->prev = nullptr;
+    base->next = nullptr;
+    base->value = temp2->value;
+    NumSlice *temp1 = base;
+    while (nullptr != temp2->prev) {
+        temp1->prev = new NumSlice;
+        temp1->prev->next = temp1;
+        temp1 = temp1->prev;
+        temp2 = temp2->prev;
+        temp1->value = temp2->value;
+    }
+    temp1->prev = nullptr;
+    temp1 = base;
+    temp2 = bn.base;
+    while(nullptr != temp2->next) {
+        temp1->next = new NumSlice;
+        temp1->next->prev = temp1;
+        temp1 = temp1->next;
+        temp2 = temp2->next;
+        temp1->value = temp2->value;
+    }
+    temp1->next = nullptr;
+}
+
 BigNum::~BigNum() {
     NumSlice *current = base;
     while (nullptr != current->next) {
@@ -181,6 +210,37 @@ BigNum BigNum::operator+(const int number) {
 
     return returnNum;
     
+}
+
+BigNum BigNum::operator+(const BigNum& bn) {
+
+    BigNum returnNum(this);
+    NumSlice *leftSlice = returnNum.base;
+    NumSlice *rightSlice = bn.base;
+
+    while (nullptr != rightSlice->next) {
+
+        add(leftSlice, rightSlice->value);
+
+        if (nullptr == leftSlice->next) {
+
+            NumSlice *newSlice = new NumSlice;
+            newSlice->prev = leftSlice;
+            newSlice->value = 0;
+            newSlice->next = nullptr;
+            leftSlice->next = newSlice;
+
+        }
+
+        leftSlice = leftSlice->next;
+        rightSlice = rightSlice->next;
+
+    }
+
+    add(leftSlice, rightSlice->value);
+
+    return returnNum;
+
 }
 
 // TODO make sure u only go through it once
@@ -262,15 +322,18 @@ int main(int argc, char* argv[]) {
     }
 
     BigNum test(123456789);
-    cout << test.toString() << endl;
+    cout << "Pre changes: " << test.toString() << endl;
 
     test = test+2345678;
-    cout << test.toString() << endl;
+    cout << "After addition with int(2345678): " << test.toString() << endl;
+
+    test = BigNum(1000) + test;
+    cout << "After addition with BigNum(1000): " << test.toString() << endl;
 
     test = test*10;
-    cout << test.toString() << endl;
+    cout << "After multiplication by int(10): " << test.toString() << endl;
 
-    cout << fac << "! = " << factorial(fac).toString() << endl;
+    //cout << fac << "! = " << factorial(fac).toString() << endl;
 
     return 0;
     

@@ -21,12 +21,11 @@ This program uses a linked list to store much much bigger numbers (tested up to 
 
 ### Features:
 - Can multiply BigNum by integers
-- Can add integeres to BigNum
+- Can add integeres and BigNum to BigNum
 - Set up to calculate factorials using command line arguments (defaults to 100)
 - Prints BigNum in slices of 1000
 
 ### Future Feature
-- Addition by BigNum
 - Substraction by int and BigNum
 - Multiplication by BigNum
 - Division by int and BigNum
