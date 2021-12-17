@@ -20,14 +20,13 @@ Want to deal with numbers larger than what *unsinged long long int* can deliver?
 This program uses a linked list to store much much bigger numbers (tested up to 100 000!) 
 
 ### Features:
-- Can multiply BigNum by integers
+- Can multiply BigNum by integers and by BigNum
 - Can add integeres and BigNum to BigNum
 - Set up to calculate factorials using command line arguments (defaults to 100)
 - Prints BigNum in slices of 1000
 
 ### Future Feature
 - Substraction by int and BigNum
-- Multiplication by BigNum
 - Division by int and BigNum
 - Implementation of other statistics functions
 - UI implementation

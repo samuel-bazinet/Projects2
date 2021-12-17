@@ -1,7 +1,6 @@
 #include<iostream>
 #include<string>
 
-using namespace std;
 
 struct NumSlice {
     NumSlice *next;
@@ -63,6 +62,7 @@ void multiply(NumSlice* slice, int number) {
 }
 
 class BigNum {
+    
     private:
         NumSlice *base;
 
@@ -76,10 +76,11 @@ class BigNum {
         void fix();
         BigNum operator +(const int add);
         BigNum operator + (const BigNum& bn);
-        BigNum operator *(const int mul);
-        //BigNum operator *(const BigNum mul);
+        BigNum operator *(const int number);
+        BigNum operator *(const BigNum& number);
+        BigNum multiplyHelper(NumSlice* ns, int counter);
         void operator =(const BigNum &toAss);
-        string toString();
+        std::string toString();
 
 };
 
@@ -255,6 +256,37 @@ BigNum BigNum::operator *(const int number) {
 
 }
 
+BigNum BigNum::operator *(const BigNum& number) {
+
+    return multiplyHelper(number.base, 0);
+
+}
+
+BigNum BigNum::multiplyHelper(NumSlice* ns, int counter) {
+
+    BigNum returnNum(this);
+    NumSlice *current = returnNum.base;
+
+    multiply(current, ns->value);
+
+
+    for (int i = 0; i < counter; i++) {
+        NumSlice *newSlice = new NumSlice;
+        newSlice->prev = returnNum.base->prev;
+        newSlice->next = returnNum.base;
+        newSlice->value = 0;
+        returnNum.base->prev = newSlice;
+        returnNum.base = newSlice;
+    }
+
+    if (nullptr != ns->next) {
+        return returnNum + multiplyHelper(ns->next, counter+1);
+    } else {
+        return returnNum;
+    }
+
+}
+
 void BigNum::operator =(const BigNum &toAss) {
     base = new NumSlice;
     base->prev = nullptr;
@@ -284,10 +316,10 @@ void BigNum::operator =(const BigNum &toAss) {
     }
 }
 
-string BigNum::toString() {
+std::string BigNum::toString() {
 
     NumSlice *current = base;
-    string out = "";
+    std::string out = "";
 
     while (nullptr != current->next) {
         current = current->next;
@@ -295,11 +327,11 @@ string BigNum::toString() {
 
     while (nullptr != current) {
         if (current->value < 10)
-            out += "00" + to_string(current->value) + " ";
+            out += "00" + std::to_string(current->value) + " ";
         else if (current->value < 100)
-            out += "0" + to_string(current->value) + " ";
+            out += "0" + std::to_string(current->value) + " ";
         else 
-            out += to_string(current->value) + ' ';
+            out += std::to_string(current->value) + ' ';
         current = current->prev;
     }
 
@@ -316,6 +348,8 @@ BigNum factorial(int n) {
 }
 
 int main(int argc, char* argv[]) {
+    using namespace std;
+
     int fac = 100;
     if (argc == 2) {
         fac = atoi(argv[1]);
@@ -327,11 +361,13 @@ int main(int argc, char* argv[]) {
     test = test+2345678;
     cout << "After addition with int(2345678): " << test.toString() << endl;
 
-    test = BigNum(1000) + test;
+    test = BigNum(1000000) + test;
     cout << "After addition with BigNum(1000): " << test.toString() << endl;
 
-    test = test*10;
-    cout << "After multiplication by int(10): " << test.toString() << endl;
+    test = test*11;
+    cout << "After multiplication by int(11): " << test.toString() << endl;
+
+    cout << "Multiplying BigNum(1010) by BigNum(5500300): " << (BigNum(1010)*BigNum(5500300)).toString() << endl;
 
     //cout << fac << "! = " << factorial(fac).toString() << endl;
 
