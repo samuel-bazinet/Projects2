@@ -9,22 +9,7 @@
  * 
  */
 
-#include<iostream>
-#include<string>
-
-
-/**
- * @brief NumSlice is a node struct containing the value of the 1000s slice, 
- * as well as pointers to the previous and next nodes
- * 
- */
-struct NumSlice {
-
-    NumSlice *next;
-    NumSlice *prev;
-    int value;
-
-};
+#include"LLBigNum.h"
 
 /**
  * @brief add is a function to add numbers to a slice and format the slice to remain under 1000
@@ -101,37 +86,6 @@ void multiply(NumSlice* slice, int number) {
     }
     
 }
-
-/**
- * @brief BigNum is a class to represent big numbers in c++
- * 
- */
-class BigNum {
-    
-    private:
-
-        // base is the NumSlice at the 1000^0th position
-        NumSlice *base;
-
-    public:
-
-        BigNum();
-        BigNum(int num);
-        BigNum(NumSlice *ns);
-        BigNum(const BigNum* bn);
-        BigNum(const BigNum& bn);
-        ~BigNum();
-        BigNum operator +(const int add);
-        BigNum operator + (const BigNum& bn);
-        BigNum operator *(const int number);
-        BigNum operator *(const BigNum& number);
-        BigNum multiplyHelper(NumSlice* ns, int counter);
-        void operator =(const BigNum &toAss);
-        std::string toString();
-
-        friend std::ostream& operator<<(std::ostream& os, const BigNum& number);
-
-};
 
 /**
  * @brief Construct a new Big Num:: Big Num object
