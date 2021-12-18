@@ -88,6 +88,103 @@ void multiply(NumSlice* slice, int number) {
 }
 
 /**
+ * @brief deepCopy deep copies a NumSlice 
+ * 
+ * @param thisSlice the target of the copy
+ * @param otherSlice the NumSlice to be copied
+ */
+void deepCopy(NumSlice* thisSlice, NumSlice* otherSlice) {
+
+    // copy the value of the base Slice
+    thisSlice->value = otherSlice->value;
+
+    // set temporary pointers to interate through the slices
+    NumSlice* temp1 = thisSlice;
+    NumSlice* temp2 = otherSlice;
+
+    // copy the next slices
+    while (nullptr != temp2->next) {
+
+        temp2 = temp2->next;
+
+        // make new slices if necessary
+        if (nullptr == temp1->next) {
+
+            NumSlice* newSlice = new NumSlice;
+
+            newSlice->prev = temp1;
+            newSlice->next = nullptr;
+            temp1->next = newSlice;
+
+        }
+
+        temp1 = temp1->next;
+
+        temp1->value = temp2->value;
+
+    }
+    
+    // delete the extra slices
+    if (nullptr != temp1->next) {
+
+        temp1 = temp1->next;
+
+        while (nullptr != temp1->next) {
+
+            temp1 = temp1->next;
+            delete temp1->prev;
+
+        }
+
+        delete temp1;
+
+    }
+
+    // reset the pointers
+    temp1 = thisSlice;
+    temp2 = otherSlice;
+
+    // copy the previous slices
+    while (nullptr != temp2->prev) {
+
+        temp2 = temp2->prev;
+
+        // create new slices if necessary
+        if (nullptr == temp1->prev) {
+
+            NumSlice* newSlice = new NumSlice;
+
+            newSlice->next = temp1;
+            newSlice->prev = nullptr;
+            temp1->prev = newSlice;
+
+        }
+
+        temp1 = temp1->prev;
+
+        temp1->value = temp1->value;
+
+    }
+
+    // delete extra slices
+    if (nullptr != temp1->prev) {
+
+        temp1 = temp1->prev;
+
+        while (nullptr != temp1->prev) {
+
+            temp1 = temp1->prev;
+            delete temp1->next;
+
+        }
+
+        delete temp1;
+
+    }
+    
+}
+
+/**
  * @brief Construct a new Big Num:: Big Num object
  */
 BigNum::BigNum() {
@@ -355,13 +452,13 @@ BigNum BigNum::operator+(const int number) {
  * @param bn a BigNum to be added to another
  * @return BigNum - The BigNum after the addition
  */
-BigNum BigNum::operator+(const BigNum& bn) {
+BigNum BigNum::operator+(const BigNum& number) {
 
     // a new BigNum is created from this
     BigNum returnNum(this);
     // pointers are made for the slice list from both BigNums
     NumSlice *leftSlice = returnNum.base;
-    NumSlice *rightSlice = bn.base;
+    NumSlice *rightSlice = number.base;
 
     // We iterate through the other's slice lise and add each to the equivalent this slice
     while (nullptr != rightSlice->next) {
@@ -394,6 +491,55 @@ BigNum BigNum::operator+(const BigNum& bn) {
 }
 
 /**
+ * @brief operator += performs an addition and assignment
+ * 
+ * @param number the number to be added
+ */
+void BigNum::operator+=(const int number) {
+    
+    // we use the add function to perfom the addition on this base
+    add(this->base, number);
+
+}
+
+/**
+ * @brief operator += performs an addition and assignment
+ * 
+ * @param number the number to be added
+ */
+void BigNum::operator+=(const BigNum& number) {
+
+    NumSlice *leftSlice = this->base;
+    NumSlice *rightSlice = number.base;
+
+    // We iterate through the other's slice lise and add each to the equivalent this slice
+    while (nullptr != rightSlice->next) {
+
+        // the values are added
+        add(leftSlice, rightSlice->value);
+
+        // if required, a new slice is added to the this slice list
+        if (nullptr == leftSlice->next) {
+
+            NumSlice *newSlice = new NumSlice;
+            newSlice->prev = leftSlice;
+            newSlice->value = 0;
+            newSlice->next = nullptr;
+            leftSlice->next = newSlice;
+
+        }
+
+        leftSlice = leftSlice->next;
+        rightSlice = rightSlice->next;
+
+    }
+
+    // the last values are added
+    add(leftSlice, rightSlice->value);
+
+}
+
+/**
  * @brief operator* lets a BigNum be multiplied by an int
  * 
  * @param number the number that will multiply the BigNum
@@ -419,9 +565,32 @@ BigNum BigNum::operator *(const int number) {
  * @return BigNum - the resulting BigNum
  */
 BigNum BigNum::operator *(const BigNum& number) {
-
+    
     // multiplyHelper is returned, performing the multiplication
     return this->multiplyHelper(number.base, 0);
+
+}
+
+/**
+ * @brief operator*= performs a multiplication and assignment
+ * 
+ * @param number the number that will multiply the BigNum
+ */
+void BigNum::operator*=(const int number) {
+
+    // we use the multiply function to perform the multiplication
+    multiply(this->base, number);
+    
+}
+
+/**
+ * @brief operator*= performs a multiplication and assignment
+ * 
+ * @param number the number that will multiply the BigNum
+ */
+void BigNum::operator*=(const BigNum& number) {
+
+    deepCopy(base, multiplyHelper(number.base, 0).base);
 
 }
 
@@ -649,8 +818,22 @@ int main(int argc, char* argv[]) {
     cout << "After multiplication by int(11): " << test << endl;
 
     // testing the multiplication by BigNum
-    cout << "Multiplying BigNum(1010) by BigNum(5500300): " << BigNum(1010)*BigNum(5500300) << endl << endl;
+    cout << "Multiplying BigNum(1010) by BigNum(5500300): " << BigNum(1010)*BigNum(5500300) << endl;
 
+    // testing the += and *= operators
+    BigNum test2(2340);
+    test2 += 5;
+    test2 *= 10;
+
+    cout << "Adding 5 then multiplying by 10: " << test2 << endl;
+
+    test2 += BigNum(2340);
+
+    cout << "Adding BigNum(2340): " << test2 << endl;
+
+    test2 *= BigNum(1000);
+
+    cout << "Multiplying by BigNum(1000): " << test2 << endl << endl;
 
     // Testing factorial and multiplication by BigNum
     BigNum ohf = factorial(100);

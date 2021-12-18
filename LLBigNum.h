@@ -38,10 +38,14 @@ class BigNum {
         BigNum(const BigNum* bn);
         BigNum(const BigNum& bn);
         ~BigNum();
-        BigNum operator +(const int add);
-        BigNum operator + (const BigNum& bn);
+        BigNum operator +(const int number);
+        BigNum operator + (const BigNum& number);
+        void operator +=(const int number);
+        void operator +=(const BigNum& number);
         BigNum operator *(const int number);
         BigNum operator *(const BigNum& number);
+        void operator *=(const int number);
+        void operator *=(const BigNum& number);
         BigNum multiplyHelper(NumSlice* ns, int counter);
         void operator =(const BigNum &toAss);
         std::string toString();
