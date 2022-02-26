@@ -633,6 +633,103 @@ BigNum BigNum::multiplyHelper(NumSlice* ns, int counter) {
 }
 
 /**
+ * @brief operator% gives the remainder of a division
+ * 
+ * @param number the dividant
+ * @return the remainder of the division
+ */
+int BigNum::operator%(const int number) {
+
+    // make a temporary slice pointer
+    NumSlice* temp = this->base;
+
+    // initiate the remainder
+    int remainder = 0;  
+    int tempSliceVal;
+
+    // Go to the top of the slice list
+    while (nullptr != temp->next) {
+        temp = temp->next;
+    }
+
+    // calculate the remainder of the slice
+    // then add the remainder*1000 to a copy of the prev slice, all the way down
+    while (nullptr != temp->prev) {
+        tempSliceVal = remainder*1000 + temp->value;
+        remainder = tempSliceVal % number;
+        temp = temp->prev;
+    }
+
+    // last slice to be done
+
+    tempSliceVal = remainder * 1000 + temp->value;
+    remainder = tempSliceVal % number;
+
+
+    // return the remainder
+    return remainder;
+
+}
+
+/**
+ * @brief operator/ lets BigNum be divided by integers 
+ * TODO: will now only give you a whole number, decimals to come
+ * @param number the dividant
+ * @return the result of the division
+ */
+BigNum BigNum::operator/(const int number) {
+
+    // create a copy of the opject
+    BigNum newNum(this->base);
+
+    // make a pointer to interact with the new BigNum
+    NumSlice *temp = newNum.base;
+
+    // create a remainder int
+    int remainder = 0;
+    
+
+    // Go to the top of the NumSlice list
+    while (nullptr!= temp->next) {
+        temp = temp->next;
+    }
+
+    // calculate the remainder of the slice
+    // then add the remainder*1000 to the prev slice
+    // then perform the division again, all the way down
+    while (nullptr != temp->prev) {
+
+        
+
+        temp->value = remainder * 1000 + temp->value;
+        remainder = temp->value % number;
+        temp->value /= number;
+        temp = temp->prev;
+
+    }
+
+    // If the next node doesn't have a value, it gets deleted
+    if (nullptr != temp->next) {
+        if (temp->next->value == 0) {
+            if (nullptr == temp->next->next) { 
+                delete temp->next;
+                temp->next = nullptr;
+            }
+        }
+    }
+
+    // last slice to be done
+
+    temp->value = remainder * 1000 + temp->value;
+    remainder = temp->value % number;
+    temp->value /= number;
+
+    return newNum;
+
+}
+
+
+/**
  * @brief operator= deep copies BigNums
  * 
  * @param toAss the BigNum to be copied
