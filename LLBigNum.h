@@ -46,8 +46,12 @@ class BigNum {
         BigNum operator *(const BigNum& number);
         void operator *=(const int number);
         void operator *=(const BigNum& number);
+        int operator %(const int number);
+        BigNum operator /(const int number);
+        BigNum* operator /(const int* number);
         BigNum multiplyHelper(NumSlice* ns, int counter);
         void operator =(const BigNum &toAss);
+        bool operator==(const BigNum &toComp);
         std::string toString();
 
         friend std::ostream& operator<<(std::ostream& os, const BigNum& number);

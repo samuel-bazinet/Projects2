@@ -787,6 +787,66 @@ void BigNum::operator =(const BigNum &toAss) {
 
 }
 
+
+/**
+ * @brief operator == compares 2 BigNum and returns true when they are equivalent
+ * 
+ * @param toComp the BigNum to be compare to this
+ * @return true when they are equivalent
+ * @return false when they are different
+ */
+bool BigNum::operator==(const BigNum &toComp) {
+
+    // temparary pointers are initiated
+    NumSlice *temp1 = this->base;
+    NumSlice *temp2 = toComp.base;
+
+    // we go to the end of the numbers
+    while (nullptr != temp1->next) {
+
+        if (nullptr == temp2->next) {
+
+            return false;
+
+        }
+
+        temp1 = temp1->next;
+        temp2 = temp2->next;
+
+    }
+
+    if (nullptr != temp2->next) {
+
+        return false;
+
+    }
+
+    // we go all the way down while comparing them to each other
+    while (nullptr != temp1->prev) {
+        
+        if (temp1->value != temp2->value || nullptr != temp2->prev) {
+            return false;
+        }
+
+        temp1 = temp1->prev;
+        temp2 = temp2->prev;
+
+    }
+
+    if (temp1->value != temp2->value) {
+        return false;
+    }
+
+    if (nullptr != temp2->prev) {
+
+        return false;
+
+    }
+
+    return true;
+
+}
+
 /**
  * @brief toString converts a BigNum to a string
  * 
