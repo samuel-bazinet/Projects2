@@ -824,7 +824,11 @@ bool BigNum::operator==(const BigNum &toComp) {
     // we go all the way down while comparing them to each other
     while (nullptr != temp1->prev) {
         
-        if (temp1->value != temp2->value || nullptr != temp2->prev) {
+        if (nullptr == temp2->prev) {
+            return false;
+        }
+
+        if (temp1->value != temp2->value) {
             return false;
         }
 
@@ -949,6 +953,95 @@ BigNum factorial(int n) {
 
 }
 
+
+BigNum factorial(BigNum number) {
+
+    BigNum out(1);
+
+    for (BigNum i(1); !(i == (number+1));  i += 1) {
+        //std::string test = "i = " + i.toString() + "\n";
+        //std::cout << test;
+        out *= i;
+
+    }
+
+    return out;
+
+}
+
+struct Attr {
+    BigNum* a;
+    BigNum* b;
+};
+
+void* pFactorial(void* in) {
+
+    Attr* attributes = (Attr*) in;
+
+    BigNum* b = new BigNum(attributes->b);
+    BigNum* bTemp = attributes->b;
+
+    for (BigNum* a = new BigNum(attributes->a); !(*a == (*bTemp)); *a += 1) {
+        //std::string test = "a = " + a->toString() + "\n";
+        //std::cout << test;
+        *b *= *a;
+    }
+
+    return (void*) (b);
+
+}
+
+/**
+ * @brief pFactorial calculates a factorial and returns it as a BigNum
+ * 
+ * @param n the factorial to be calculated (n!)
+ * @return BigNum - the resulting Factorial as a BigNum
+ */
+BigNum pFactorial(BigNum n) {
+
+    const int THREADS = 64;
+
+    pthread_t *threads = new pthread_t[THREADS];
+    Attr* attributes = new Attr[THREADS]; 
+    BigNum* out = new BigNum(1);
+
+    BigNum base = n/THREADS;
+
+    attributes[0] = {new BigNum(1), new BigNum(base)};
+
+    int ret;
+
+    ret = pthread_create(&threads[0], NULL, pFactorial, (void*) &(attributes[0]));
+
+
+    for (int i = THREADS-1 ; i > 0; i--) {
+
+        if (THREADS-1 == i) {
+            attributes[THREADS-1] = {new BigNum((base*i)+1), new BigNum(n)};
+        } else {
+            attributes[i] = {new BigNum((base*i)+1), new BigNum((base*(i+1)))};
+        }
+
+        ret = pthread_create(&threads[i], NULL, pFactorial, (void*) &(attributes[i]));
+        if (ret != 0)
+            std::cout << "There was an issue with the thread\n";
+
+
+    }
+
+    ret = pthread_create(&threads[0], NULL, pFactorial, (void*) &(attributes[0]));
+
+    void* result;
+
+    for (int i = 0; i < THREADS; i++) {
+        pthread_join(threads[i], &result);
+        *out *= (BigNum*) result;
+    }
+
+    return out;
+
+}
+
 int main(int argc, char* argv[]) {
     using namespace std;
     /*
@@ -958,6 +1051,7 @@ int main(int argc, char* argv[]) {
     }
     */
 
+    /*
     // testing the int constructor
     BigNum test(123456789);
     cout << "Pre changes: " << test << endl;
@@ -1000,6 +1094,10 @@ int main(int argc, char* argv[]) {
     cout << "20! = " << tfac << endl;
 
     cout << "Multiplying 100! by 20! = " << ohf*tfac << endl;
+    */
+
+    cout << "Testing multithreaded 100! = " << pFactorial(BigNum(10000)) << endl;
+    //cout << "Testing 100! = " << factorial(BigNum(10000)) << endl;
 
     return 0;
     

@@ -5,6 +5,7 @@
 
 #include<iostream>
 #include<string>
+#include<pthread.h>
 
 /**
  * @brief NumSlice is a node struct containing the value of the 1000s slice, 
