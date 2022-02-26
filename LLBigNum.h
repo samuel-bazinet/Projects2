@@ -5,6 +5,7 @@
 
 #include<iostream>
 #include<string>
+#include<pthread.h>
 
 /**
  * @brief NumSlice is a node struct containing the value of the 1000s slice, 
@@ -38,16 +39,24 @@ class BigNum {
         BigNum(const BigNum* bn);
         BigNum(const BigNum& bn);
         ~BigNum();
+        NumSlice* getBase();
         BigNum operator +(const int number);
         BigNum operator + (const BigNum& number);
+        BigNum* operator + (const BigNum* number);
         void operator +=(const int number);
         void operator +=(const BigNum& number);
         BigNum operator *(const int number);
         BigNum operator *(const BigNum& number);
+        BigNum* operator *(const BigNum* number);
         void operator *=(const int number);
         void operator *=(const BigNum& number);
+        int operator %(const int number);
+        BigNum operator /(const int number);
+        BigNum* operator /(const int* number);
         BigNum multiplyHelper(NumSlice* ns, int counter);
+        BigNum* pMultiplyHelper(NumSlice* ns, int counter);
         void operator =(const BigNum &toAss);
+        bool operator==(const BigNum &toComp);
         std::string toString();
 
         friend std::ostream& operator<<(std::ostream& os, const BigNum& number);

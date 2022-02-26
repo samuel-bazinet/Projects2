@@ -41,7 +41,9 @@ void add(NumSlice* slice, int number) {
         }
 
         // we recursively call add to apply the remainder to the next slice
-        add(slice->next, toAdd);
+        if (toAdd > 0) { 
+            add(slice->next, toAdd);
+        }
         
     }
 
@@ -406,7 +408,7 @@ BigNum::BigNum(const BigNum& bn) {
  * 
  */
 BigNum::~BigNum() {
-
+    std::cout << "Destructor called on " << this->toString() << "\n";
     // a temporary pointer is pointing to the base
     NumSlice *current = base;
     
@@ -425,6 +427,10 @@ BigNum::~BigNum() {
 
     // we delete the remaining slice
     delete current;
+}
+
+NumSlice* BigNum::getBase() {
+    return this->base;
 }
 
 /**
@@ -459,6 +465,50 @@ BigNum BigNum::operator+(const BigNum& number) {
     // pointers are made for the slice list from both BigNums
     NumSlice *leftSlice = returnNum.base;
     NumSlice *rightSlice = number.base;
+
+    // We iterate through the other's slice lise and add each to the equivalent this slice
+    while (nullptr != rightSlice->next) {
+
+        // the values are added
+        add(leftSlice, rightSlice->value);
+
+        // if required, a new slice is added to the this slice list
+        if (nullptr == leftSlice->next) {
+
+            NumSlice *newSlice = new NumSlice;
+            newSlice->prev = leftSlice;
+            newSlice->value = 0;
+            newSlice->next = nullptr;
+            leftSlice->next = newSlice;
+
+        }
+
+        leftSlice = leftSlice->next;
+        rightSlice = rightSlice->next;
+
+    }
+
+    // the last values are added
+    add(leftSlice, rightSlice->value);
+
+    // the new BigNum is returned
+    return returnNum;
+
+}
+
+/**
+ * @brief operator+ lets BigNum be added together
+ * 
+ * @param bn a BigNum to be added to another
+ * @return BigNum - The BigNum after the addition
+ */
+BigNum* BigNum::operator+(const BigNum* number) {
+
+    // a new BigNum is created from this
+    BigNum* returnNum = new BigNum(this);
+    // pointers are made for the slice list from both BigNums
+    NumSlice *leftSlice = returnNum->base;
+    NumSlice *rightSlice = number->base;
 
     // We iterate through the other's slice lise and add each to the equivalent this slice
     while (nullptr != rightSlice->next) {
@@ -572,6 +622,19 @@ BigNum BigNum::operator *(const BigNum& number) {
 }
 
 /**
+ * @brief operator* lets BigNum be multiplied by another BigNum
+ * 
+ * @param number the BigNum that will multiply the other
+ * @return BigNum - the resulting BigNum
+ */
+BigNum* BigNum::operator *(const BigNum* number) {
+    
+    // multiplyHelper is returned, performing the multiplication
+    return this->pMultiplyHelper(number->base, 0);
+
+}
+
+/**
  * @brief operator*= performs a multiplication and assignment
  * 
  * @param number the number that will multiply the BigNum
@@ -591,6 +654,159 @@ void BigNum::operator*=(const int number) {
 void BigNum::operator*=(const BigNum& number) {
 
     deepCopy(base, multiplyHelper(number.base, 0).base);
+
+}
+
+/**
+ * @brief operator% gives the remainder of a division
+ * 
+ * @param number the dividant
+ * @return the remainder of the division
+ */
+int BigNum::operator%(const int number) {
+
+    // make a temporary slice pointer
+    NumSlice* temp = this->base;
+
+    // initiate the remainder
+    int remainder = 0;  
+    int tempSliceVal;
+
+    // Go to the top of the slice list
+    while (nullptr != temp->next) {
+        temp = temp->next;
+    }
+
+    // calculate the remainder of the slice
+    // then add the remainder*1000 to a copy of the prev slice, all the way down
+    while (nullptr != temp->prev) {
+        tempSliceVal = remainder*1000 + temp->value;
+        remainder = tempSliceVal % number;
+        temp = temp->prev;
+    }
+
+    // last slice to be done
+
+    tempSliceVal = remainder * 1000 + temp->value;
+    remainder = tempSliceVal % number;
+
+
+    // return the remainder
+    return remainder;
+
+}
+
+/**
+ * @brief operator/ lets BigNum be divided by integers 
+ * TODO: will now only give you a whole number, decimals to come
+ * @param number the dividant
+ * @return the result of the division
+ */
+BigNum BigNum::operator/(const int number) {
+
+    // create a copy of the opject
+    BigNum newNum(this->base);
+
+    // make a pointer to interact with the new BigNum
+    NumSlice *temp = newNum.base;
+
+    // create a remainder int
+    int remainder = 0;
+    
+
+    // Go to the top of the NumSlice list
+    while (nullptr!= temp->next) {
+        temp = temp->next;
+    }
+
+    // calculate the remainder of the slice
+    // then add the remainder*1000 to the prev slice
+    // then perform the division again, all the way down
+    while (nullptr != temp->prev) {
+
+        
+
+        temp->value = remainder * 1000 + temp->value;
+        remainder = temp->value % number;
+        temp->value /= number;
+        temp = temp->prev;
+
+    }
+
+    // If the next node doesn't have a value, it gets deleted
+    if (nullptr != temp->next) {
+        if (temp->next->value == 0) {
+            if (nullptr == temp->next->next) { 
+                delete temp->next;
+                temp->next = nullptr;
+            }
+        }
+    }
+
+    // last slice to be done
+
+    temp->value = remainder * 1000 + temp->value;
+    remainder = temp->value % number;
+    temp->value /= number;
+
+    return newNum;
+
+}
+
+/**
+ * @brief operator/ lets BigNum be divided by integers 
+ * TODO: will now only give you a whole number, decimals to come
+ * @param number the dividant
+ * @return the result of the division
+ */
+BigNum* BigNum::operator/(const int* number) {
+
+    // create a copy of the opject
+    BigNum* newNum = new BigNum(this->base);
+
+    // make a pointer to interact with the new BigNum
+    NumSlice *temp = newNum->base;
+
+    // create a remainder int
+    int remainder = 0;
+    
+
+    // Go to the top of the NumSlice list
+    while (nullptr!= temp->next) {
+        temp = temp->next;
+    }
+
+    // calculate the remainder of the slice
+    // then add the remainder*1000 to the prev slice
+    // then perform the division again, all the way down
+    while (nullptr != temp->prev) {
+
+        
+
+        temp->value = remainder * 1000 + temp->value;
+        remainder = temp->value % *number;
+        temp->value /= *number;
+        temp = temp->prev;
+
+    }
+
+    // If the next node doesn't have a value, it gets deleted
+    if (nullptr != temp->next) {
+        if (temp->next->value == 0) {
+            if (nullptr == temp->next->next) { 
+                delete temp->next;
+                temp->next = nullptr;
+            }
+        }
+    }
+
+    // last slice to be done
+
+    temp->value = remainder * 1000 + temp->value;
+    remainder = temp->value % *number;
+    temp->value /= *number;
+
+    return newNum;
 
 }
 
@@ -625,6 +841,45 @@ BigNum BigNum::multiplyHelper(NumSlice* ns, int counter) {
     // if more slices of the other BigNum exist, they get added to the resulting BigNum
     if (nullptr != ns->next) {
         return returnNum + this->multiplyHelper(ns->next, counter+1);
+    } else {
+        // the completed BigNum is returned
+        return returnNum;
+    }
+
+}
+
+/**
+ * @brief PMultiplyHelper facilitates the multiplication of BigNums by recursively adding slices 
+ * This version is made to work with the pointers instead of non-pointers
+ * 
+ * @param ns the slice that multiplies the BigNum
+ * @param counter the slice in 1000th where the slice is located
+ * @return BigNum the resulting BigNum
+ */
+BigNum* BigNum::pMultiplyHelper(NumSlice* ns, int counter) {
+
+    // a new BigNum is created from this
+    BigNum* returnNum = new BigNum(this);
+
+    // multiplied is used to multiply the BigNum by the slice
+    multiply(returnNum->base, ns->value);
+
+
+    // slices of 1000s are added to the BigNum compensate for the position of the slice being multiplied
+    for (int i = 0; i < counter; i++) {
+
+        NumSlice *newSlice = new NumSlice;
+        newSlice->prev = returnNum->base->prev;
+        newSlice->next = returnNum->base;
+        newSlice->value = 0;
+        returnNum->base->prev = newSlice;
+        returnNum->base = newSlice;
+
+    }
+
+    // if more slices of the other BigNum exist, they get added to the resulting BigNum
+    if (nullptr != ns->next) {
+        return (*returnNum) + this->pMultiplyHelper(ns->next, counter+1);
     } else {
         // the completed BigNum is returned
         return returnNum;
@@ -691,6 +946,65 @@ void BigNum::operator =(const BigNum &toAss) {
 }
 
 /**
+ * @brief operator == compares 2 BigNum and returns true when they are equivalent
+ * 
+ * @param toComp the BigNum to be compare to this
+ * @return true when they are equivalent
+ * @return false when they are different
+ */
+bool BigNum::operator==(const BigNum &toComp) {
+
+    // temparary pointers are initiated
+    NumSlice *temp1 = this->base;
+    NumSlice *temp2 = toComp.base;
+
+    // we go to the end of the numbers
+    while (nullptr != temp1->next) {
+
+        if (nullptr == temp2->next) {
+
+            return false;
+
+        }
+
+        temp1 = temp1->next;
+        temp2 = temp2->next;
+
+    }
+
+    if (nullptr != temp2->next) {
+
+        return false;
+
+    }
+
+    // we go all the way down while comparing them to each other
+    while (nullptr != temp1->prev) {
+        
+        if (temp1->value != temp2->value || nullptr != temp2->prev) {
+            return false;
+        }
+
+        temp1 = temp1->prev;
+        temp2 = temp2->prev;
+
+    }
+
+    if (temp1->value != temp2->value) {
+        return false;
+    }
+
+    if (nullptr != temp2->prev) {
+
+        return false;
+
+    }
+
+    return true;
+
+}
+
+/**
  * @brief toString converts a BigNum to a string
  * 
  * @return std::string - the resulting string
@@ -749,6 +1063,10 @@ std::ostream& operator<<(std::ostream& os, const BigNum& number) {
     // the output slices are formatted to be 3-digit long
     while (nullptr != current) {
 
+        if (current->value < 0 || current->value >= 1000) {
+            std::cout << "Bad deleting\n";
+        } 
+
         if (current->value < 10)
             out += "00" + std::to_string(current->value) + " ";
 
@@ -791,6 +1109,184 @@ BigNum factorial(int n) {
     return out;
 
 }
+
+BigNum factorial(BigNum number) {
+
+    BigNum out(1);
+
+    for (BigNum i(1); !(i == (number+1));  i += 1) {
+
+        out *= i;
+
+    }
+
+    return out;
+
+}
+
+bool setList[100];
+
+struct Args {
+    BigNum* a;
+    BigNum* b;
+};
+
+void* pFactorialT(void* arg) {
+
+    Args* arguments = (Args*) arg;
+
+    BigNum* begin;
+    BigNum* end;
+
+    if (nullptr == arguments->a) {
+        std::cout << "A is null\n";
+        std::cout << "B is " << *(arguments->b) << "\n";
+    }
+    if (nullptr == arguments->b || nullptr == arguments->b->getBase()) {
+        std::cout << "B is null\n";
+        std::cout << "A is " << *(arguments->a) << "\n";
+    }
+    
+
+
+    if (nullptr != arguments->a->getBase()->next) {
+        if (nullptr == arguments->a->getBase()->next->prev) {
+            begin = new BigNum(arguments->a->getBase()->next);
+        } else {
+            begin = arguments->a;
+        }
+    } else {
+        begin = arguments->a;
+    }
+    if (nullptr != arguments->b->getBase()->next) {
+        if (nullptr == arguments->b->getBase()->next->prev) {
+            end = new BigNum(arguments->b->getBase()->next);
+        } else {
+            end = arguments->b;
+        }
+    } else {
+        end = arguments->b;
+    }
+
+    std::string status = "Begin: " + begin->toString() + " End: " + end->toString() + "\n";
+    std::cout << status;
+    int* half = new int(2);
+    BigNum* mid =  (*((*begin)+(end))/half);
+    delete half;
+    //std::cout << "Mid is " << *mid << "\n";
+    if (*begin == *end) {
+        std::cout << "End of divide\n";
+        if (setList[begin->getBase()->value-1]) {
+            std::cout << *begin << "has already been multiplied\n";
+            return (void*) new BigNum(1);
+        }
+        setList[begin->getBase()->value-1] = true;
+        return (void*) begin;
+    }
+    if (*begin + 1 == *end) {
+        if (setList[begin->getBase()->value-1] && setList[end->getBase()->value-1]) {
+            return (void*) new BigNum(1);
+        }
+        if (setList[begin->getBase()->value-1]) {
+            setList[end->getBase()->value-1] = true;
+            return (void*) end;
+        }
+        if (setList[end->getBase()->value-1]) {
+            setList[begin->getBase()->value-1] = true;
+            return (void*) begin;
+        }
+        setList[begin->getBase()->value-1] = true;
+        std::cout << "End of divide\n";
+        return (void*) (*begin*end);
+    }
+
+    pthread_t* threads = new pthread_t[2];
+    int ret;
+
+    Args* first = new Args;
+    first->a = new BigNum(begin->getBase());
+    first->b = new BigNum(mid->getBase());
+    Args* second = new Args;
+    second->a = new BigNum(((*mid)+1).getBase());
+    second->b = new BigNum(end->getBase());
+
+    status = "First is starting with " + first->a->toString() + "and " + first->b->toString() + "\n";
+    std::cout << status;
+    ret = pthread_create(&threads[0], NULL, pFactorialT, &first);
+    if (ret != 0) {
+        printf("There was a thread issue");
+    }
+    status = "Second is starting with " + second->a->toString() + "and " + second->b->toString() + "\n";
+    std::cout << status;
+    ret = pthread_create(&threads[1], NULL, pFactorialT, &second);
+    if (ret != 0) {
+        printf("There was a thread issue");
+    }
+
+    void* result;
+    ret = pthread_join(threads[0], &result);
+    BigNum* resultA = (BigNum*) result;
+    ret = pthread_join(threads[1], &result);
+    BigNum* resultB = (BigNum*) result;
+
+    return (void*) ((*resultA)*(resultB));
+}
+
+void* pFactorial(void* b, void* n) {
+
+    BigNum* begin = (BigNum*) b;
+    BigNum* end = (BigNum*) n;
+    int* half = new int(2);
+    BigNum* mid =  *((*begin)+(end))/half;
+    delete half;
+    std::cout << "Mid is " << *mid << "\n";
+    if (*begin == *end || (*begin)+1 == *end) {
+        return (void*) begin;
+    }
+
+    pthread_t* threads = new pthread_t[2];
+    int ret;
+
+    Args* first = new Args;
+    first->a = new BigNum(begin->getBase());
+    first->b = new BigNum(mid->getBase());
+    Args* second = new Args;
+    second->a = new BigNum(((*mid)+1).getBase());
+    second->b = new BigNum(end->getBase());
+
+    std::string status = "First is starting with " + first->a->toString() + "and " + first->b->toString() + "\n";
+    std::cout << status;
+    ret = pthread_create(&threads[0], NULL, pFactorialT, &first);
+    if (ret != 0) {
+        printf("There was a thread issue");
+    }
+    status = "Second is starting with " + second->a->toString() + "and " + second->b->toString() + "\n";
+    std::cout << status;
+    ret = pthread_create(&threads[1], NULL, pFactorialT, &second);
+    if (ret != 0) {
+        printf("There was a thread issue");
+    }
+
+    void* result;
+    ret = pthread_join(threads[0], &result);
+    BigNum* resultA = (BigNum*) result;
+    ret = pthread_join(threads[1], &result);
+    BigNum* resultB = (BigNum*) result;
+
+    return (void*) ((*resultA)*(resultB));
+
+}
+
+/**
+ * @brief Calculates the factorial using multithreading
+ * 
+ * @return the factorial
+ */
+BigNum pFactorial(const BigNum n) {
+    return (BigNum*) pFactorial(new BigNum(1), new BigNum(n));
+}
+
+
 
 int main(int argc, char* argv[]) {
     using namespace std;
@@ -843,6 +1339,10 @@ int main(int argc, char* argv[]) {
     cout << "20! = " << tfac << endl;
 
     cout << "Multiplying 100! by 20! = " << ohf*tfac << endl;
+
+    cout << "Testing BigNum(1001)/ 5 = " << BigNum(1001)/5 << endl;
+
+    cout << "Testing multi-threaded factorial(100)" << pFactorial(BigNum(100)) << endl;
 
     return 0;
     
